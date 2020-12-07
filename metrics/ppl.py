@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 
 import lpips
-from model import Generator
+from models.model import Generator
 
 
 def normalize(x):

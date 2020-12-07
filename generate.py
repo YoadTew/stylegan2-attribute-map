@@ -2,7 +2,7 @@ import argparse
 
 import torch
 from torchvision import utils
-from model import Generator
+from models.model import Generator
 from tqdm import tqdm
 
 
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     ).to(device)
     checkpoint = torch.load(args.ckpt)
 
-    g_ema.load_state_dict(checkpoint["g_ema"])
+    g_ema.load_state_dict(checkpoint["g_ema"], strict=False)
 
     if args.truncation < 1:
         with torch.no_grad():

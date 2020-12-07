@@ -3,7 +3,6 @@ import math
 import random
 import os
 
-import numpy as np
 import torch
 from torch import nn, autograd, optim
 from torch.nn import functional as F
@@ -18,9 +17,9 @@ try:
 except ImportError:
     wandb = None
 
-from model import Generator, Discriminator
-from dataset import MultiResolutionDataset
-from distributed import (
+from models.model import Generator, Discriminator
+from data.dataset import MultiResolutionDataset
+from data.distributed import (
     get_rank,
     synchronize,
     reduce_loss_dict,

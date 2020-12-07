@@ -7,8 +7,8 @@ import numpy as np
 from scipy import linalg
 from tqdm import tqdm
 
-from model import Generator
-from calc_inception import load_patched_inception_v3
+from models.model import Generator
+from metrics.calc_inception import load_patched_inception_v3
 
 
 @torch.no_grad()
