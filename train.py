@@ -477,7 +477,7 @@ if __name__ == "__main__":
     if args.ckpt is not None:
         print("load model:", args.ckpt)
 
-        ckpt = torch.load(args.ckpt, map_location=lambda storage, loc: storage)
+        ckpt = torch.load(args.ckpt)#, map_location=lambda storage, loc: storage)
 
         try:
             ckpt_name = os.path.basename(args.ckpt)
