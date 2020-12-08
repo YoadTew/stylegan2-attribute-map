@@ -37,7 +37,17 @@ class Generator(nn.Module):
 
         self.style = nn.Sequential(*layers)
 
-        self.attribute_mapper = AttributeMapper(style_dim, lr_mlp)
+        ### Attribute mapper network ###
+        # self.attribute_mapper = AttributeMapper(style_dim)
+
+        layers = []
+
+        for i in range(6):
+            layers.append(nn.Linear(style_dim, style_dim))
+            layers.append(nn.ReLU(True))
+
+        self.attribute_mapper = nn.Sequential(*layers[:-1])
+        ###
 
         self.channels = {
             4: 512,
@@ -130,6 +140,7 @@ class Generator(nn.Module):
         input_is_latent=False,
         noise=None,
         randomize_noise=True,
+        use_attribute_map=False
     ):
         if not input_is_latent:
             styles = [self.style(s) for s in styles]
@@ -171,7 +182,8 @@ class Generator(nn.Module):
             latent = torch.cat([latent, latent2], 1)
 
         # Added attribute mapper #
-        latent = self.attribute_mapper(latent)
+        if use_attribute_map:
+            latent = self.attribute_mapper(latent)
         #######
 
         out = self.input(latent)

@@ -345,7 +345,7 @@ if __name__ == "__main__":
         "--iter", type=int, default=800000, help="total training iterations"
     )
     parser.add_argument(
-        "--batch", type=int, default=16, help="batch sizes for each gpus"
+        "--batch", type=int, default=4, help="batch sizes for each gpus"
     )
     parser.add_argument(
         "--n_sample",
