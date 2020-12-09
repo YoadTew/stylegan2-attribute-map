@@ -38,15 +38,15 @@ class Generator(nn.Module):
         self.style = nn.Sequential(*layers)
 
         ### Attribute mapper network ###
-        # self.attribute_mapper = AttributeMapper(style_dim)
+        self.attribute_mapper = AttributeMapper(style_dim)
 
-        layers = []
-
-        for i in range(6):
-            layers.append(nn.Linear(style_dim, style_dim))
-            layers.append(nn.ReLU(True))
-
-        self.attribute_mapper = nn.Sequential(*layers[:-1])
+        # layers = []
+        #
+        # for i in range(6):
+        #     layers.append(nn.Linear(style_dim, style_dim))
+        #     layers.append(nn.ReLU(True))
+        #
+        # self.attribute_mapper = nn.Sequential(*layers[:-1])
         ###
 
         self.channels = {
@@ -183,10 +183,12 @@ class Generator(nn.Module):
 
         # Added attribute mapper #
         if use_attribute_map:
-            latent = self.attribute_mapper(latent)
+            W_tag = self.attribute_mapper(latent)
+        else:
+            W_tag = latent
         #######
 
-        out = self.input(latent)
+        out = self.input(W_tag)
         out = self.conv1(out, latent[:, 0], noise=noise[0])
 
         skip = self.to_rgb1(out, latent[:, 1])
@@ -204,7 +206,7 @@ class Generator(nn.Module):
         image = skip
 
         if return_latents:
-            return image, latent
+            return image, latent, W_tag
 
         else:
             return image, None

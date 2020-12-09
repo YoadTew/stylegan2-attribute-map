@@ -123,8 +123,8 @@ class Trainer:
 
             z_batch = mixing_noise(self.args.batch_size, self.args.latent, self.args.mixing, self.device)
 
-            fake_img_batch, _ = self.generator(z_batch, truncation=self.args.truncation, truncation_latent=self.mean_latent,
-                                         use_attribute_map=True)
+            fake_img_batch, W, W_tag = self.generator(z_batch, truncation=self.args.truncation, truncation_latent=self.mean_latent,
+                                         use_attribute_map=True, return_latents=True)
 
             fake_img_batch_without_attribute, _ = self.generator(z_batch, truncation=self.args.truncation, truncation_latent=self.mean_latent,
                                          use_attribute_map=False)
@@ -135,12 +135,14 @@ class Trainer:
 
             probs = self.attribute_classifier(fake_img_batch_norm)
 
+            # Losses
             classifier_loss = self.classifier_criterion(probs, torch.ones(probs.shape, device=self.device))
-            mse_loss = self.mse_loss(fake_img_batch, fake_img_batch_without_attribute)
+            # img_mse_loss = self.mse_loss(fake_img_batch, fake_img_batch_without_attribute)
+            latent_mse_loss = self.mse_loss(W, W_tag)
 
-            loss = 1 * mse_loss + 0 * classifier_loss
+            loss = 5 * latent_mse_loss + 1 * classifier_loss
 
-            print(f'Loss iter {idx}:  Classifier {classifier_loss}, MSE {mse_loss}')
+            print(f'Loss iter {idx}:  Classifier {classifier_loss}, MSE {latent_mse_loss}')
 
             loss.backward()
             self.optimizer.step()
