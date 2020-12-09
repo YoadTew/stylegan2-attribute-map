@@ -53,6 +53,7 @@ def get_args():
     parser.add_argument("--lr", type=float, default=0.01, help="learning rate")
     parser.add_argument("--log_dir", default='logs', help="Logs dir path")
     parser.add_argument("--n_sample", type=int, default=8, help="number of the samples generated during training")
+    parser.add_argument("--iters", type=int, default=100, help="number of the iterations for every epoch")
 
     # Generator
     parser.add_argument("--generator_ckpt", type=str, default=None, help="path to the generator checkpoint")
@@ -116,7 +117,7 @@ class Trainer:
         normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                          std=[0.229, 0.224, 0.225])
 
-        for idx in range(100):
+        for idx in range(self.args.iters):
             self.optimizer.zero_grad()
             self.generator.zero_grad()
             self.attribute_classifier.zero_grad()
@@ -137,16 +138,15 @@ class Trainer:
 
             # Losses
             classifier_loss = self.classifier_criterion(probs, torch.ones(probs.shape, device=self.device))
-            # img_mse_loss = self.mse_loss(fake_img_batch, fake_img_batch_without_attribute)
+            img_mse_loss = self.mse_loss(fake_img_batch, fake_img_batch_without_attribute)
             latent_mse_loss = self.mse_loss(W, W_tag)
 
-            loss = 5 * latent_mse_loss + 1 * classifier_loss
+            loss = 1 * img_mse_loss + (10**2) * latent_mse_loss + 1 * classifier_loss
 
-            print(f'Loss iter {idx}:  Classifier {classifier_loss}, MSE {latent_mse_loss}')
+            print(f'Loss iter {((epoch_idx-1) * self.args.iters) + idx}:  Classifier {classifier_loss}, MSE {latent_mse_loss}')
 
             loss.backward()
             self.optimizer.step()
-
 
         self.do_test(epoch_idx)
 
@@ -161,19 +161,33 @@ class Trainer:
                                                truncation_latent=self.mean_latent,
                                                use_attribute_map=use_attribute_map)
 
+            sample_img_batch = sample_img_batch.to('cpu')
+
             out_dir = f'experiment/{epoch_idx}/'
 
             if not os.path.exists(os.path.dirname(out_dir)):
                 os.makedirs(os.path.dirname(out_dir))
 
-            for i, sample_img in enumerate(sample_img_batch):
-                utils.save_image(
-                    sample_img,
-                    f"{out_dir}/{str(i).zfill(6)}.png",
-                    nrow=1,
-                    normalize=True,
-                    range=(-1, 1),
-                )
+            if use_attribute_map:
+                for i, (original_img, sample_img) in enumerate(zip(self.original_sample, sample_img_batch)):
+                    utils.save_image(
+                        torch.stack([original_img, sample_img]),
+                        f"{out_dir}/{str(i).zfill(6)}.png",
+                        nrow=2,
+                        normalize=True,
+                        range=(-1, 1),
+                    )
+            else:
+                for i, sample_img in enumerate(sample_img_batch):
+                    utils.save_image(
+                        sample_img,
+                        f"{out_dir}/{str(i).zfill(6)}.png",
+                        nrow=1,
+                        normalize=True,
+                        range=(-1, 1),
+                    )
+
+        return sample_img_batch
 
 
     def do_training(self):
@@ -183,7 +197,7 @@ class Trainer:
             with torch.no_grad():
                 self.mean_latent = self.generator.mean_latent(self.args.truncation_mean)
 
-        self.do_test(0, use_attribute_map=False)
+        self.original_sample = self.do_test(0, use_attribute_map=False)
 
         for self.current_epoch in range(1, 10):
             self._do_epoch(self.current_epoch)
