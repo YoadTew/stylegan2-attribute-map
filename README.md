@@ -6,7 +6,7 @@ Face attribute mapping using StyleGAN2 in pytorch
 
 ## Samples
 
-![Sample with truncation](stuff/examples/0000000.png)
+![Sample with truncation](Stuff/examples/0000000.png)
 ![Sample with truncation](stuff/examples/0000001.png)
 ![Sample with truncation](stuff/examples/0000002.png)
 ![Sample with truncation](stuff/examples/0000003.png)
